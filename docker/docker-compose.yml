@@ -6,15 +6,23 @@ services:
       - 3005:5000 # mapeia a porta 5000 do container para a porta 3005 da máquina
     volumes:
       - ../web:/app # mapeia a pasta web para a pasta /app dentro do container
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:16-alpine3.19
     container_name: app-db
+    healthcheck:
+      test: ["pg_isready", "-d", "tecsci", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     ports:
       - 5432:5432
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./configuration/db/init:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_PASSWORD=opa
       - POSTGRES_DB=tecsci
